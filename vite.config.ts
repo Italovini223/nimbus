@@ -7,5 +7,15 @@ export default defineConfig({
   define: {
     global: 'window', 
   }, 
+  server: {
+    proxy: {
+      '/api': {
+        target: 'https://nimbusns.weethub.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+    },
+  },
+  
 })
  

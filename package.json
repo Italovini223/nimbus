@@ -14,6 +14,8 @@
     "@nimbus-ds/components": "^5.5.5",
     "@nimbus-ds/patterns": "^1.8.0",
     "@nimbus-ds/styles": "^9.11.7",
+    "axios": "^1.7.9",
+    "cors-anywhere": "^0.4.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.1.5"

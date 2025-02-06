@@ -1,5 +1,5 @@
 import { Button } from "@nimbus-ds/components"
-
+// import { TiendanubeIcon } from "@nimbus-ds/icons";
 
 export function Home(){
   return (

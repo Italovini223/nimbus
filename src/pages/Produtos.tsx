@@ -1,18 +1,20 @@
 import { api } from "../services/api";
-import { JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal, useEffect, useState } from "react";
+import { Key, useEffect, useState } from "react";
 import productImage from "../assets/vestido.png";
 import { ProductsType } from "../dtos/productDto";
 import { IconButton, Box, Input, Button, Text, Chip, Table, Thumbnail, Icon, Tag } from "@nimbus-ds/components";
 import { Page, Layout, DataTable } from "@nimbus-ds/patterns";
-import { TiendanubeIcon, EditIcon } from "@nimbus-ds/icons";
+import { EditIcon } from "@nimbus-ds/icons";
 import { useNavigate } from "react-router-dom";
 import { formatMetadata } from "../utils/formatMetadata";
 
 export const Produtos = () => {
     const [products, setProducts] = useState<ProductsType[]>([]);
+    const [searchTerm, setSearchTerm] = useState("");
     const navigate = useNavigate();
-    const formattedMetadata = products.map(product => formatMetadata(product.hub_dados_produto_metadados)).filter(meta => meta !== null);
 
+    const formattedMetadata = products.map(product => formatMetadata(product.hub_dados_produto_metadados)).filter(meta => meta !== null);
+    const length = products.length;
 
     function handleGoToDetails(id: number) {
         navigate(`/details/${id}`, );
@@ -39,13 +41,13 @@ export const Produtos = () => {
         fetchData();
     }, []);
 
-
-    const mainImage = formattedMetadata?.filter((meta) => meta !== null)?.[0]?.images?.find((img: any) => img.position === 1) || formattedMetadata?.filter((meta) => meta !== null)?.[0]?.images?.[0];
+    const filteredProducts = products.filter(product =>
+        product.hub_dados_produto_titulo.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     return (
     <div>
         <Page.Header
-            buttonStack={<><IconButton size="2rem" source={<TiendanubeIcon />}/><IconButton size="2rem" source={<TiendanubeIcon />}/><Button>Minhas aplicações<Icon source={ <TiendanubeIcon />}/></Button><Button>Ação secundária<Icon source={ <TiendanubeIcon />}/></Button><Button appearance="primary"><Icon color="neutral-background" source={<TiendanubeIcon />}/>Ação primária</Button></>}
             title="Lista de produtos"
         >
             <Box
@@ -57,26 +59,19 @@ export const Produtos = () => {
                 display="flex"
                 gap="1"
             >
-                <Input.Search placeholder="Buscar" />
-                <Button>
-                <Icon
-                    color="currentColor"
-                    source={<TiendanubeIcon />}
+                <Input.Search
+                    placeholder="Buscar"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
                 />
-                </Button>
             </Box>
             <Box
                 alignItems="center"
                 display="flex"
                 gap="2" 
                 >
-                <Text>
-                150 produtos
-                </Text>
-                <Chip
-                removable
-                text="Filtro aplicado"
-                />
+                <Text>{length} produtos no total </Text>
+                {searchTerm && <Text>{filteredProducts.length} produtos encontrados</Text>}
             </Box>
             </Box>
         </Page.Header>
@@ -99,7 +94,7 @@ export const Produtos = () => {
                         />
                     }
                     header={
-                        <DataTable.Header checkbox={{ checked: false, name: 'check-all-rows' }}>
+                        <DataTable.Header checkbox={{ checked: false, name: 'check-all-rows', style: { display: 'none' } }}>
                         <Table.Cell width="auto">Produto</Table.Cell>
                         <Table.Cell width="88px">Estoque</Table.Cell>
                         <Table.Cell width="100px">Preço</Table.Cell>
@@ -109,11 +104,11 @@ export const Produtos = () => {
                         </DataTable.Header>
                     }
                     >
-                    {products.map((product) => (
+                    {filteredProducts.map((product) => (
                         <DataTable.Row
                             key={product.hub_dados_produto_id}
                             backgroundColor={{ hover: "neutral-surface", rest: "neutral-background" }}
-                            checkbox={{ checked: false, name: `check-${product.hub_dados_produto_id}` }}
+                            checkbox={{ checked: false, name: `check-${product.hub_dados_produto_id}`, style: { opacity: '0' } }}
                         >
                             <Table.Cell>
                             <Box display="flex" gap="2">
@@ -143,7 +138,7 @@ export const Produtos = () => {
                             </Box>
                             </Table.Cell>
                             <Table.Cell>
-                                <span>{formattedMetadata[products.indexOf(product)]?.variants?.[0]?.stock}</span>
+                                <span>{formattedMetadata[products.indexOf(product)]?.variants?.[0]?.stock ?? "∞" }</span>
                             </Table.Cell>
                             <Table.Cell>
                                 <span>{formattedMetadata[products.indexOf(product)]?.variants?.[0]?.price}</span>

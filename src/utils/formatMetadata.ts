@@ -21,6 +21,10 @@ export function formatMetadata(metadataString: string) {
           : [],
           variants: Array.isArray(metadata.variants)
             ? metadata.variants.map((v: {
+              weight: number;
+              height: number;
+              width: number;
+              depth: number;
                 stock: any;
                 promotional_price: any;
                     image_id: any; price: string; values?: any[] 
@@ -30,6 +34,10 @@ export function formatMetadata(metadataString: string) {
                 promotional_price: v?.promotional_price,
                 images: metadata.images.filter((img: any) => img.id === v.image_id),
                 variants: v?.values?.map(val => val.pt).join(", "),
+                depth: v?.depth || 0,
+                width: v?.width || 0,
+                height: v?.height || 0,
+                weight: v?.weight || 0,
                 }))
             : [],
 

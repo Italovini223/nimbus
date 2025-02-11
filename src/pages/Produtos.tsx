@@ -2,7 +2,7 @@ import { api } from "../services/api";
 import { Key, useEffect, useState } from "react";
 import productImage from "../assets/vestido.png";
 import { ProductsType } from "../dtos/productDto";
-import { IconButton, Box, Input, Button, Text, Chip, Table, Thumbnail, Icon, Tag } from "@nimbus-ds/components";
+import { IconButton, Box, Input, Text, Table, Thumbnail, Tag } from "@nimbus-ds/components";
 import { Page, Layout, DataTable } from "@nimbus-ds/patterns";
 import { EditIcon } from "@nimbus-ds/icons";
 import { useNavigate } from "react-router-dom";

@@ -10,14 +10,26 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@dnd-kit/accessibility": "^3.1.1",
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
     "@nimbus-ds/button": "^2.5.0",
     "@nimbus-ds/components": "^5.5.5",
+    "@nimbus-ds/editor": "^1.0.1",
     "@nimbus-ds/patterns": "^1.8.0",
     "@nimbus-ds/styles": "^9.11.7",
+    "@tiptap/core": "^2.11.5",
+    "@tiptap/extension-image": "^2.11.5",
+    "@tiptap/react": "^2.11.5",
+    "@tiptap/starter-kit": "^2.11.5",
+    "@types/react-beautiful-dnd": "^13.1.8",
     "axios": "^1.7.9",
     "cors-anywhere": "^0.4.4",
+    "draft-js": "^0.11.7",
     "react": "^18.3.1",
+    "react-beautiful-dnd": "^13.1.1",
     "react-dom": "^18.3.1",
+    "react-draft-wysiwyg": "^1.15.0",
     "react-router-dom": "^7.1.5"
   },
   "devDependencies": {

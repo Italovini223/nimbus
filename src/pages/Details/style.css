@@ -1,0 +1,17 @@
+.ql-editor img.ql-align-left {
+    display: block;
+    margin: 0;
+    float: left;
+}
+
+.ql-editor img.ql-align-center {
+    display: block;
+    margin: 0 auto;
+}
+
+.ql-editor img.ql-align-right {
+    display: block;
+    margin: 0;
+    float: right;
+}
+  

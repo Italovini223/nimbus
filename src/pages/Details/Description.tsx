@@ -2,13 +2,15 @@ import React, { useState } from "react";
 import { Card, Box, Button } from "@nimbus-ds/components";
 import { DragDotsIcon } from "@nimbus-ds/icons";
 import { FormField } from "@nimbus-ds/patterns";
-import { Editor } from "@nimbus-ds/editor";
-import RichTextEditor from "./Richtext";
+import QuillEditorLocalImages from "./EditorImageAndText"; // Editor para texto+imagem
+import ImageUploader from "./EditorImage"; // Editor que só permite inserir imagem
 
+// Atualize a interface Section para incluir o tipo de seção
 interface Section {
   id: number;
   title: string;
   description: string;
+  type: "textImage" | "imageOnly";
 }
 
 interface SortableItemProps {
@@ -22,8 +24,16 @@ interface SortableItemProps {
   onDelete: (id: number) => void;
 }
 
-const SortableItem: React.FC<SortableItemProps> = ({ section, isDragging, onDragStart, onDragEnd, onTitleChange, onDescriptionChange, onSave, onDelete }) => {
-
+const SortableItem: React.FC<SortableItemProps> = ({
+  section,
+  isDragging,
+  onDragStart,
+  onDragEnd,
+  onTitleChange,
+  onDescriptionChange,
+  onSave,
+  onDelete,
+}) => {
   const containerStyle: React.CSSProperties = {
     transition: "transform 0.3s ease-in-out",
     transform: isDragging ? "scale(1.05)" : "scale(1)",
@@ -46,42 +56,54 @@ const SortableItem: React.FC<SortableItemProps> = ({ section, isDragging, onDrag
       onDragEnd={onDragEnd}
       onDragOver={(e) => e.preventDefault()}
     >
-      <div style={{ marginBottom: "16px" }}>
-        <FormField.Input
-          crossOrigin=""
-          label={
-            <Box display="flex" justifyContent="space-between" alignItems="center" width="100%">
-              <span>Título da Seção {section.id}</span>
-              <DragDotsIcon
-                style={{
-                  width: "24px",
-                  height: "24px",
-                  color: "#333",
-                  cursor: isDragging ? "grabbing" : "grab",
-                }}
-                aria-label="Arraste para mover"
-              />
-            </Box>
-          }
-          value={section.title}
-          onChange={(e) =>
-            onTitleChange(section.id, (e.target as HTMLInputElement).value)
-          }
-        />
-      </div>
-      <div style={{ marginBottom: "16px" }}>
-        <Editor
-          id={`description-${section.id}`}
-          aria-label="Descrição"
-          value={section.description}
-          onChange={(data: string) =>
-            onDescriptionChange(
-              section.id,
-              data
-            )
-          }
-        />
-      </div>
+      {section.type === "textImage" ? (
+        // Seção com título e editor de texto
+        <>
+          <div style={{ marginBottom: "16px" }}>
+            <FormField.Input
+              crossOrigin=""
+              label={
+                <Box display="flex" justifyContent="space-between" alignItems="center" width="100%">
+                  <span>Título da Seção {section.id}</span>
+                  <DragDotsIcon
+                    style={{
+                      width: "24px",
+                      height: "24px",
+                      color: "#333",
+                      cursor: isDragging ? "grabbing" : "grab",
+                    }}
+                    aria-label="Arraste para mover"
+                  />
+                </Box>
+              }
+              value={section.title}
+              onChange={(e) =>
+                onTitleChange(section.id, (e.target as HTMLInputElement).value)
+              }
+            />
+          </div>
+          <div style={{ marginBottom: "16px" }}>
+            <QuillEditorLocalImages
+              value={section.description}
+              onChange={(newDescription) =>
+                onDescriptionChange(section.id, newDescription)
+              }
+            />
+          </div>
+        </>
+      ) : (
+        // Seção somente de imagem
+        <>
+          <div style={{ marginBottom: "16px" }}>
+            <ImageUploader
+              value={section.description}
+              onChange={(newDescription) =>
+                onDescriptionChange(section.id, newDescription)
+              }
+            />
+          </div>
+        </>
+      )}
       <Box display="flex" gap="3" marginY="2" justifyContent="flex-end">
         <Button appearance="primary" onClick={() => onSave(section.id)}>
           Salvar
@@ -95,25 +117,35 @@ const SortableItem: React.FC<SortableItemProps> = ({ section, isDragging, onDrag
 };
 
 const DescriptionPRO: React.FC = () => {
-  // Lista de seções
   const [sections, setSections] = useState<Section[]>([]);
-  // Guarda o id do item que está sendo arrastado
   const [draggingId, setDraggingId] = useState<number | null>(null);
-  // Controla qual item está com o mouse sobre ele durante o arraste
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
-  // Armazena os dados salvos de cada seção, usando o id como chave
   const [savedSections, setSavedSections] = useState<{
     [key: number]: { title: string; description: string };
   }>({});
 
-  const addSection = () => {
+  // Adiciona uma seção com título e editor de texto
+  const addSectionTextImage = () => {
     const newSection: Section = {
       id: Date.now(),
       title: "",
       description: "",
+      type: "textImage",
     };
     setSections([...sections, newSection]);
-    console.log("Seção adicionada:", newSection);
+    console.log("Seção Texto e Imagem adicionada:", newSection);
+  };
+
+  // Adiciona uma seção somente para imagem
+  const addSectionImage = () => {
+    const newSection: Section = {
+      id: Date.now(),
+      title: "", // pode ser ignorado ou omitido no UI
+      description: "",
+      type: "imageOnly",
+    };
+    setSections([...sections, newSection]);
+    console.log("Seção Somente Imagem adicionada:", newSection);
   };
 
   const handleDragStart = (id: number) => {
@@ -158,7 +190,6 @@ const DescriptionPRO: React.FC = () => {
     );
   };
 
-  // Função para salvar os dados (título e descrição) de uma seção
   const handleSaveSection = (id: number) => {
     const section = sections.find((s) => s.id === id);
     if (section) {
@@ -170,7 +201,6 @@ const DescriptionPRO: React.FC = () => {
     }
   };
 
-  // Função para excluir uma seção, removendo-a da lista e dos dados salvos
   const handleDeleteSection = (id: number) => {
     setSections((prevSections) =>
       prevSections.filter((section) => section.id !== id)
@@ -209,17 +239,27 @@ const DescriptionPRO: React.FC = () => {
                 onDelete={handleDeleteSection}
               />
             </div>
-
           ))}
         </Box>
-        <Box display="flex" justifyContent="center">
-          <Button style={{ margin: "20px 0" }} appearance="primary" onClick={addSection}>
-            Adicionar Seção
+        <Box display="flex" justifyContent="center" gap="4">
+          <Button
+            style={{ margin: "20px 0" }}
+            appearance="primary"
+            onClick={addSectionTextImage}
+          >
+            Adicionar Seção Texto e Imagem
+          </Button>
+          <Button
+            style={{ margin: "20px 0" }}
+            appearance="primary"
+            onClick={addSectionImage}
+          >
+            Adicionar Seção Somente Imagem
           </Button>
         </Box>
 
-        {/* Para visualização dos dados salvos */}
-        <pre>{JSON.stringify(savedSections, null, 2)}</pre>
+        {/* Visualização dos dados salvos */}
+        {/* <pre>{JSON.stringify(savedSections, null, 2)}</pre> */}
       </Card.Body>
     </Card>
   );

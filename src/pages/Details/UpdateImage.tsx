@@ -1,98 +1,120 @@
-const getUploadUrl = async () => {
-    const API_KEY_ID = "SUA_KEY_ID";
-    const APPLICATION_KEY = "SUA_APPLICATION_KEY";
-  
-    const credentials = btoa(`${API_KEY_ID}:${APPLICATION_KEY}`); // Encode para Basic Auth
-  
+import { useState } from "react";
+
+interface FileUploadProps {
+  onUploadComplete?: (url: string) => void;
+}
+
+const FileUpload: React.FC<FileUploadProps> = ({ onUploadComplete }) => {
+  const [file, setFile] = useState<File | null>(null);
+  const [uploadUrl, setUploadUrl] = useState<string>("");
+  const [uploadAuthToken, setUploadAuthToken] = useState<string>("");
+  const [fileUrl, setFileUrl] = useState<string>("");
+
+  // 🔹 Substitua pelos seus dados do Backblaze B2
+    const B2_KEY_ID = "00204f1b60844b70000000011";
+    const B2_APP_KEY = "K002xAl798KYCSwVYKM/ibmhaRplEU8";
+    const BUCKET_NAME = "nuvempro-static";
+    const BUCKET_ID = "d0c4ef816b16400884b40b17";
+    const API_URL = "https://api.backblazeb2.com/b2api/v2";
+
+  // 🔹 Defina a estrutura da pasta onde o arquivo será armazenado
+  const folderPath = "nuvempro_static/customer_files/999/app_dp";
+
+  // 🔹 Obtém a URL de Upload e o Token de autorização para upload
+  const getUploadUrl = async (): Promise<void> => {
     try {
-      const response = await fetch("https://api.backblazeb2.com/b2api/v2/b2_authorize_account", {
+      // 1️⃣ Autorização na API do Backblaze B2
+      const authResponse = await fetch(`${API_URL}/b2_authorize_account`, {
         method: "GET",
         headers: {
-          Authorization: `Basic ${credentials}`,
+          Authorization: "Basic " + btoa(`${B2_KEY_ID}:${B2_APP_KEY}`),
         },
       });
-  
-      const data = await response.json();
-      if (data.authorizationToken) {
-        const uploadUrlResponse = await fetch(`${data.apiUrl}/b2api/v2/b2_get_upload_url`, {
+      const authData = await authResponse.json();
+      if (!authData.apiUrl) throw new Error("Erro na autorização");
+
+      // 2️⃣ Obtém a URL de Upload do Bucket
+      const bucketResponse = await fetch(
+        `${authData.apiUrl}/b2api/v2/b2_get_upload_url`,
+        {
           method: "POST",
           headers: {
-            Authorization: data.authorizationToken,
+            Authorization: authData.authorizationToken,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ bucketId: "SEU_BUCKET_ID" }),
-        });
-  
-        const uploadData = await uploadUrlResponse.json();
-        return uploadData; // Retorna o uploadUrl e authorizationToken
-      } else {
-        console.error("Erro ao obter token:", data);
-      }
+          body: JSON.stringify({ bucketId: BUCKET_ID }),
+        }
+      );
+      const bucketData = await bucketResponse.json();
+      if (!bucketData.uploadUrl) throw new Error("Erro ao obter URL de Upload");
+
+      setUploadUrl(bucketData.uploadUrl);
+      setUploadAuthToken(bucketData.authorizationToken); // Use o token de upload correto
     } catch (error) {
       console.error("Erro ao obter URL de upload:", error);
     }
   };
-  
 
-  import { useState } from "react";
-
-const FileUpload = () => {
-  const [file, setFile] = useState<File | null>(null);
-  const [uploadUrl, setUploadUrl] = useState("");
-  const [uploadAuthToken, setUploadAuthToken] = useState("");
-  const [fileUrl, setFileUrl] = useState("");
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files[0]) {
-      setFile(event.target.files[0]);
-    }
-  };
-
-  const handleGetUploadUrl = async () => {
-    const uploadData = await getUploadUrl();
-    if (uploadData) {
-      setUploadUrl(uploadData.uploadUrl);
-      setUploadAuthToken(uploadData.authorizationToken);
-    }
-  };
-
-  const handleUpload = async () => {
+  // 🔹 Faz o upload do arquivo para o Backblaze B2
+  const handleUpload = async (): Promise<void> => {
     if (!file || !uploadUrl || !uploadAuthToken) {
-      console.error("Faltando parâmetros para upload.");
+      console.error("Arquivo ou URL de upload ausentes.");
       return;
     }
 
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("fileName", file.name);
+    // 🔹 Define o caminho final do arquivo dentro da pasta especificada
+    const filePath = `${folderPath}/${file.name}`.replace(/\/+/g, "/");
 
     try {
       const response = await fetch(uploadUrl, {
         method: "POST",
         headers: {
+          // Use o token exatamente como retornado, sem o prefixo "Bearer"
           Authorization: uploadAuthToken,
-          "X-Bz-File-Name": encodeURIComponent(file.name),
+          "X-Bz-File-Name": encodeURIComponent(filePath),
           "Content-Type": file.type,
           "X-Bz-Content-Sha1": "do_not_verify",
         },
         body: file,
       });
-
       const data = await response.json();
       if (data.fileId) {
-        setFileUrl(`https://f000.backblazeb2.com/file/SEU_BUCKET_NAME/${file.name}`);
+        // Modificação: força o uso do endpoint f002
+        const url = `https://f002.backblazeb2.com/file/${BUCKET_NAME}/${filePath}`;
+        setFileUrl(url);
+        if (onUploadComplete) {
+          onUploadComplete(url);
+        }
+      } else {
+        throw new Error("Erro ao fazer upload do arquivo");
       }
     } catch (error) {
       console.error("Erro ao fazer upload:", error);
     }
   };
 
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = event.target.files?.[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+    }
+  };
+
   return (
     <div>
       <input type="file" onChange={handleFileChange} />
-      <button onClick={handleGetUploadUrl}>Obter URL de Upload</button>
-      <button onClick={handleUpload} disabled={!uploadUrl}>Fazer Upload</button>
-      {fileUrl && <img src={fileUrl} alt="Uploaded" />}
+      <button onClick={getUploadUrl}>Obter URL de Upload</button>
+      <button onClick={handleUpload} disabled={!uploadUrl}>
+        Fazer Upload
+      </button>
+      {fileUrl && (
+        <div>
+          <p>Arquivo enviado com sucesso!</p>
+          <a href={fileUrl} target="_blank" rel="noopener noreferrer">
+            Ver Arquivo
+          </a>
+        </div>
+      )}
     </div>
   );
 };

@@ -3,7 +3,8 @@ import { Card, Box, Button } from "@nimbus-ds/components";
 import { DragDotsIcon } from "@nimbus-ds/icons";
 import { FormField } from "@nimbus-ds/patterns";
 import QuillEditorLocalImages from "./EditorImageAndText"; // Editor para texto+imagem
-import ImageUploader from "./EditorImage"; // Editor que só permite inserir imagem
+// import ImageUploader from "./EditorImage"; // Editor que só permite inserir imagem
+import FileUpload from "./UpdateImage";
 
 // Atualize a interface Section para incluir o tipo de seção
 interface Section {
@@ -95,12 +96,12 @@ const SortableItem: React.FC<SortableItemProps> = ({
         // Seção somente de imagem
         <>
           <div style={{ marginBottom: "16px" }}>
-            <ImageUploader
-              value={section.description}
-              onChange={(newDescription) =>
-                onDescriptionChange(section.id, newDescription)
-              }
-            />
+            <FileUpload onUploadComplete={(url) => {
+              // Aqui você pode salvar a URL no estado da seção ou no banco de dados
+              console.log("URL do arquivo enviado:", url);
+              // Se desejar, chame a função onDescriptionChange para salvar a URL na descrição:
+              onDescriptionChange(section.id, url);
+            }} />
           </div>
         </>
       )}

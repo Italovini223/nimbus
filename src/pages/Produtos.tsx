@@ -167,8 +167,6 @@ export const Produtos = () => {
                         ))}
                 </DataTable>
 
-                
-
                 {/* mobileContent={
                     <>
                     <Box px="4">

@@ -73,7 +73,6 @@ export function Details() {
                                 crossOrigin=""
                                 disabled
                                 value={stripHtml(products[0]?.hub_dados_produto_descricao || "")}
-                                
                             />
                             </Box>
                         </Card.Body>
@@ -82,11 +81,7 @@ export function Details() {
                     </Layout.Section>
                     </Layout>
                 </Page.Body>
-                </Page>
-
-
-
-
+            </Page>
         </div>
     )
 

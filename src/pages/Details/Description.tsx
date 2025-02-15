@@ -259,7 +259,7 @@ const DescriptionPRO: React.FC = () => {
         </Box>
 
         {/* Visualização dos dados salvos */}
-        {/* <pre>{JSON.stringify(savedSections, null, 2)}</pre> */}
+        <pre>{JSON.stringify(savedSections, null, 2)}</pre>
       </Card.Body>
     </Card>
   );
